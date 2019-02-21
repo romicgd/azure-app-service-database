@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    @using (Html.BeginForm("Connect", "Home"))
+    {
+        <div class="form-group">
+            <label for="connectionInput">Connection String</label>
+            <input required type="text" class="form-control" name="connectionInput" id="connectionInput" placeholder="Enter connection string">
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary btn-lg" value="Connect to SQL"/>
+        </div>
+    }
+</div>
