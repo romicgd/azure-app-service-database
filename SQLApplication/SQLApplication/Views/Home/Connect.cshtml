@@ -23,12 +23,24 @@
             <div class="alert alert-success" role="alert">
                 Connection success!
             </div>
-            <ul class="list-group">
-                @foreach (var result in ViewBag.Results)
-                {
-                    <li style="margin-bottom: 2px" class="list-group-item">@result</li>
-                }
-            </ul>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var result in ViewBag.Results)
+                    {
+                        <tr>
+                            <td>@result.ID</td>
+                            <td>@result.Name</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
         }
     }
     <a href="/" class="btn btn-secondary btn-sm">Go back</a>
