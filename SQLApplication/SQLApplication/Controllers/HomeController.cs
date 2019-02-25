@@ -16,7 +16,7 @@ namespace SQLApplication.Controllers
     }
 
     public class HomeController : Controller
-    { 
+    {
         public ActionResult Index()
         {
             return View();
@@ -25,77 +25,53 @@ namespace SQLApplication.Controllers
         [HttpPost]
         public ActionResult Connect(string connectionInput, bool? useIdentity)
         {
+            // If user selected the identity checkbox, use managed identity
             bool identity = useIdentity != null ? useIdentity.Value : false;
-            if(identity)
+
+            using (SqlConnection con = new SqlConnection(connectionInput))
             {
-                using (SqlConnection con = new SqlConnection())
+                // If using managed identity, get token from Azure to connect to database
+                if (identity)
                 {
-                    con.ConnectionString = connectionInput;
-                    con.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net").Result;
-                    try
+                    con.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/").Result;
+                }
+
+                try
+                {
+                    con.Open();
+                }
+                catch (SqlException e)
+                {
+                    // Create list of all errors and send to ViewBag to display to user
+                    List<string> messages = new List<string>();
+                    for (int i = 0; i < e.Errors.Count; i++)
                     {
-                        con.Open();
+                        messages.Add(e.Errors[i].Message);
                     }
-                    catch (SqlException e)
-                    {
-                        List<string> messages = new List<string>();
-                        for (int i = 0; i < e.Errors.Count; i++)
-                        {
-                            messages.Add(e.Errors[i].Message);
-                        }
-                        ViewBag.Error = messages;
-                        return View();
-                    }
+                    ViewBag.Error = messages;
+                    return View();
+                }
 
 
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Test", con))
-                    using (SqlDataReader reader = command.ExecuteReader())
+                // Get all values from Test table in database
+                using (SqlCommand command = new SqlCommand("SELECT * FROM Test", con))
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    // Create a new Record and store it into the messages list
+                    List<Record> records = new List<Record>();
+                    while (reader.Read())
                     {
-                        List<Record> messages = new List<Record>();
-                        while (reader.Read())
-                        {
-                            Record r;
-                            r.ID = reader.GetInt32(0);
-                            r.Name = reader.GetString(1);
-                            messages.Add(r);
-                        }
-                        ViewBag.Results = messages;
+                        Record r;
+                        r.ID = reader.GetInt32(0);
+                        r.Name = reader.GetString(1);
+                        records.Add(r);
                     }
+
+                    // Set ViewBag.Results to be the list of records we got from the database
+                    // Will loop through them in the View page (see Connect.cshtml)
+                    ViewBag.Results = records;
                 }
             }
-            else
-            {
-                using (SqlConnection con = new SqlConnection(connectionInput))
-                {
-                    try
-                    {
-                        con.Open();
-                    }
-                    catch (SqlException e)
-                    {
-                        List<string> messages = new List<string>();
-                        for (int i = 0; i < e.Errors.Count; i++)
-                        {
-                            messages.Add(e.Errors[i].Message);
-                        }
-                        ViewBag.Error = messages;
-                        return View();
-                    }
-
-
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Test", con))
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        List<string> messages = new List<string>();
-                        while (reader.Read())
-                        {
-                            messages.Add(reader.GetString(1));
-                        }
-                        ViewBag.Results = messages;
-                    }
-                }
-            }
-           
 
             return View();
         }
