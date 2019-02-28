@@ -1,0 +1,47 @@
+﻿
+@{
+    ViewBag.Title = "ConnectPostgreSQL";
+}
+
+<div class="jumbotron">
+    @{
+        if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                Connection failed
+            </div>
+            <ul class="list-group">
+                @foreach (var error in ViewBag.Error)
+                {
+                    <li class="list-group-item list-group-item-danger">@error</li>
+                }
+            </ul>
+        }
+        if (ViewBag.Results != null)
+        {
+            <div class="alert alert-success" role="alert">
+                Connection success!
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var result in ViewBag.Results)
+                    {
+                        <tr>
+                            <td>@result.ID</td>
+                            <td>@result.Name</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        }
+    }
+    <a href="/" class="btn btn-secondary btn-sm">Go back</a>
+</div>
+

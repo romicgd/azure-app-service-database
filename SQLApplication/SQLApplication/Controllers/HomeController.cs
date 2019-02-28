@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using System.Data.SqlClient;
 using Microsoft.Azure.Services.AppAuthentication;
 using System.Web.Configuration;
+using Npgsql;
+using System.Threading.Tasks;
 
 namespace SQLApplication.Controllers
 {
@@ -73,6 +75,39 @@ namespace SQLApplication.Controllers
                 }
             }
 
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ConnectPostgres(string connectionInput)
+        {
+            using(NpgsqlConnection conn = new NpgsqlConnection(connectionInput))
+            {
+                try
+                {
+                    conn.Open();
+                }
+                catch(NpgsqlException e)
+                {
+                    List<string> messages = new List<string>();
+                    messages.Add(e.Message);
+                    ViewBag.Error = messages;
+                    return View();
+                }
+
+                NpgsqlCommand readCommand = new NpgsqlCommand("SELECT * FROM Test", conn);
+                NpgsqlDataReader results = readCommand.ExecuteReader();
+                List<Record> records = new List<Record>();
+                while (results.Read())
+                {
+                    Record r;
+                    r.ID = (int)results[0];
+                    r.Name = (string)results[1];
+                    records.Add(r);
+                }
+                ViewBag.Results = records;
+
+            }
             return View();
         }
     }
